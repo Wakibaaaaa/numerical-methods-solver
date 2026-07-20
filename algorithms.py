@@ -5,6 +5,7 @@ Core numerical methods engine: Fixed-Point Iteration and Newton-Raphson.
 Uses SymPy for symbolic parsing and automatic differentiation.
 """
 
+import re
 import sympy as sp
 import time
 
@@ -16,6 +17,29 @@ class ConvergenceError(Exception):
     pass
 
 
+def _normalize_input(s):
+    """
+    Make common natural-notation habits work automatically:
+    - Unicode superscripts (x², x³) -> x^2, x^3
+    - e^(...) or e^token -> exp(...)  (so 'e' means Euler's number, not a variable)
+    """
+    superscript_map = str.maketrans("⁰¹²³⁴⁵⁶⁷⁸⁹", "0123456789")
+
+    def repl_super(m):
+        return "^" + m.group(0).translate(superscript_map)
+
+    s = re.sub(r"[⁰¹²³⁴⁵⁶⁷⁸⁹]+", repl_super, s)
+
+    # e^(something) -> exp(something)
+    # Uses a lookbehind instead of \b, because \b doesn't match between
+    # a digit and a letter (e.g. "2e^..." — the 2 blocks a plain \b check).
+    s = re.sub(r"(?<![A-Za-z_])e\^\(([^()]*)\)", r"exp(\1)", s)
+    # e^token (no parentheses, e.g. e^-2x, e^2) -> exp(token)
+    s = re.sub(r"(?<![A-Za-z_])e\^(-?\w+)", r"exp(\1)", s)
+
+    return s
+
+
 def parse_expression(expr_str):
     """
     Convert a string like 'cos(x) - x*exp(x)' or 'x^2 - 2 = 0'
@@ -25,7 +49,7 @@ def parse_expression(expr_str):
     if not expr_str or not expr_str.strip():
         raise ConvergenceError("The equation field is empty. Please enter a function of x.")
 
-    cleaned = expr_str.strip()
+    cleaned = _normalize_input(expr_str.strip())
 
     # Allow "something = something" by moving everything to one side.
     # Example: "x^2 - 2 = 0"  ->  "(x^2 - 2) - (0)"
@@ -62,8 +86,6 @@ def auto_convert_to_phi(f_expr):
     """
     try:
         solutions = sp.solve(sp.Eq(f_expr, 0), x)
-        # We only accept it if SymPy found a clean explicit expression for x
-        # that still depends on x (i.e. a genuine phi(x), not a numeric root).
         for sol in solutions:
             if x in sol.free_symbols:
                 return sp.simplify(sol)
@@ -81,8 +103,6 @@ def evaluate(expr, value, trig_mode="radian"):
         v = value
         if trig_mode == "degree":
             v = value * sp.pi / 180
-            # substitute only inside trig-affecting evaluation;
-            # simplest safe approach: substitute x with (value in radians)
         result = expr.subs(x, v).evalf()
         if result.has(sp.zoo, sp.oo, -sp.oo, sp.nan):
             raise ConvergenceError("The function is undefined at this point (division by zero or infinity).")
@@ -138,7 +158,6 @@ def fixed_point_iteration(phi_expr, x0, tol, max_iter, print_digits,
                 "status": "Converged"
             }
 
-        # This is the key setting from the spec: rounded value feeds the next iteration
         xn = round_to_digits(new_x, print_digits) if use_rounded else new_x
 
         if abs(xn) > 1e15:
