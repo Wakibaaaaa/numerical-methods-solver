@@ -24,7 +24,7 @@ x = sp.Symbol('x')
 st.set_page_config(page_title="Numerical Methods Solver", layout="wide")
 
 st.title("🧮 Numerical Methods Solver")
-st.caption("Solve nonlinear equations using Fixed-Point Iteration and Newton-Raphson — with full step-by-step working.")
+st.caption("Solve nonlinear equations using Fixed-Point Iteration and Newton-Raphson — with full step-by-step working. Built as a university project.")
 
 # ----------------------------------------------------------------
 # SIDEBAR: all inputs
