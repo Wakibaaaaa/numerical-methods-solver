@@ -21,7 +21,11 @@ from graph import plot_function, plot_error_vs_iteration, plot_convergence
 
 x = sp.Symbol('x')
 
-st.set_page_config(page_title="Numerical Methods Solver", layout="wide")
+st.set_page_config(
+    page_title="Numerical Methods Solver",
+    page_icon="favicon.png",
+    layout="wide"
+)
 
 st.title("🧮 Numerical Methods Solver")
 st.caption("Solve nonlinear equations using Fixed-Point Iteration and Newton-Raphson — with full step-by-step working. Built as a university project.")
@@ -30,8 +34,8 @@ st.caption("Solve nonlinear equations using Fixed-Point Iteration and Newton-Rap
 # SIDEBAR: all inputs
 # ----------------------------------------------------------------
 with st.sidebar:
+    st.image("logo.png", width=90)
     st.header("Settings")
-
     method = st.radio("Method", ["Fixed Point", "Newton-Raphson"])
 
     st.divider()
