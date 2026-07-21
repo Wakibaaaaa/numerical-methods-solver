@@ -35,8 +35,8 @@ st.caption("Solve nonlinear equations using Fixed-Point Iteration and Newton-Rap
 # ----------------------------------------------------------------
 with st.sidebar:
     st.image("logo.png", width=90)
-    st.header("Settings")
-    method = st.radio("Method", ["Fixed Point", "Newton-Raphson"])
+    st.markdown("### Method")
+    method = st.radio("Method", ["Fixed Point", "Newton-Raphson"], label_visibility="collapsed")
 
     st.divider()
 
